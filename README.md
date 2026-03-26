@@ -9,7 +9,7 @@ OmniSearch indexes NTFS metadata directly through USN/MFT APIs for fast global s
 
 <p align="center"><strong>Search Experience</strong></p>
 <p align="center">
-  <img src="docs/images/Explore.png" width="88%" alt="OmniSearch Screenshot">
+  <img src="docs/images/Explore-Window.png" width="88%" alt="OmniSearch Screenshot">
 </p>
 <p align="center"><em>Main search tab with filters, categories, previews, and actions.</em></p>
 <p align="center"><sub>──────────── · ────────────</sub></p>
