@@ -1,9 +1,29 @@
-name: Build MSI
+name: Build Installers
 on: [push]
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64
+            runner: windows-latest
+            arch: x86_64
+            args: ''
+            bundle-path: src-tauri/target/release/bundle
+            artifact-name: installer-x64
+
+          - name: arm64
+            runner: windows-11-arm
+            arch: aarch64
+            args: '--bundles nsis'
+            bundle-path: src-tauri/target/release/bundle
+            artifact-name: installer-arm64
+
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -14,22 +34,33 @@ jobs:
           node-version: lts/*
           cache: 'npm'
 
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Install dependencies
         run: npm install
 
-      - name: Build Tauri App (Generates MSI)
+      - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # This will be auto-replaced
+          tagName: v__VERSION__
           releaseName: "OmniSearch v__VERSION__"
           releaseBody: "Automated build from GitHub Actions"
           releaseDraft: true
           prerelease: false
+          args: ${{ matrix.args }}
 
       - name: Upload MSI Artifact
+        if: matrix.arch == 'x86_64'
         uses: actions/upload-artifact@v4
         with:
-          name: msi-installer
-          path: src-tauri/target/release/bundle/msi/*.msi
+          name: ${{ matrix.artifact-name }}-msi
+          path: ${{ matrix.bundle-path }}/msi/*.msi
+
+      - name: Upload NSIS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}-nsis
+          path: ${{ matrix.bundle-path }}/nsis/*.exe
